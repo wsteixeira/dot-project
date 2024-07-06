@@ -1,1 +1,15 @@
-<button (click)="generateDoc()">Gerar Documento</button>
+<form (submit)="downloadTemplate()">
+  <input
+    type="text"
+    [(ngModel)]="formData.name"
+    name="name"
+    placeholder="Name"
+  />
+  <input
+    type="number"
+    [(ngModel)]="formData.age"
+    name="age"
+    placeholder="Age"
+  />
+  <button type="submit">Submit</button>
+</form>
