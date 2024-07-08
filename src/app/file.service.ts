@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import JSZip from 'jszip';
-import { PDFDocument, rgb } from 'pdf-lib';
-import { DOMParser, XMLSerializer } from 'xmldom';
 import { HttpClient } from '@angular/common/http';
+
+import JSZip from 'jszip';
+import { jsPDF } from 'jspdf';
+import { DOMParser, XMLSerializer } from 'xmldom';
 
 @Injectable({
   providedIn: 'root',
@@ -80,21 +81,10 @@ export class FileService {
 
           console.log('Extracted text:', extractedText);
 
-          const pdfDoc = await PDFDocument.create();
-          const page = pdfDoc.addPage([600, 400]);
-          const { width, height } = page.getSize();
-          const fontSize = 12;
-
-          page.drawText(extractedText, {
-            x: 50,
-            y: height - 4 * fontSize,
-            size: fontSize,
-            color: rgb(0, 0, 0),
-          });
-
-          const pdfBytes = await pdfDoc.save();
-          const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-          observer.next(blob);
+          const doc = new jsPDF();
+          doc.text(extractedText, 10, 10);
+          const pdfBlob = doc.output('blob');
+          observer.next(pdfBlob);
           observer.complete();
         } catch (error) {
           console.error('Error processing file:', error);
