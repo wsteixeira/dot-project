@@ -2,13 +2,14 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import JSZip from 'jszip';
 import { PDFDocument, rgb } from 'pdf-lib';
-import { DOMParser, XMLSerializer } from 'xmldom'; // Adicione esta linha se xmldom estiver disponível
+import { DOMParser, XMLSerializer } from 'xmldom';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root',
 })
 export class FileService {
-  constructor() {}
+  constructor(private http: HttpClient) {}
 
   convertDotxToPdf(
     file: File,
@@ -103,5 +104,13 @@ export class FileService {
 
       reader.readAsArrayBuffer(file);
     });
+  }
+
+  downloadModel(): Observable<Blob> {
+    // A URL deve corresponder à rota configurada no seu servidor Express
+    const url = '/api/download-model';
+
+    // A opção 'responseType: 'blob'' é necessária para tratar a resposta como um arquivo binário
+    return this.http.get(url, { responseType: 'blob' });
   }
 }
