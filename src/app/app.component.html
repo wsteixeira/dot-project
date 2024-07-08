@@ -1,3 +1,6 @@
 <div>
+  <input type="text" placeholder="Name" [(ngModel)]="name" />
+  <input type="text" placeholder="Age" [(ngModel)]="age" />
   <input type="file" (change)="onFileSelected($event)" />
+  <button (click)="convertToPdf()">Convert to PDF</button>
 </div>

@@ -7,13 +7,24 @@ import { FileService } from './file.service';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent {
+  name: string = '';
+  age: string = '';
+  selectedFile: File | null = null;
+
   constructor(private fileService: FileService) {}
 
   onFileSelected(event: any): void {
-    const file: File = event.target.files[0];
+    this.selectedFile = event.target.files[0];
+  }
 
-    if (file) {
-      this.fileService.convertDotxToPdf(file).subscribe(
+  convertToPdf(): void {
+    if (this.selectedFile) {
+      const variables = {
+        name: this.name,
+        age: this.age,
+      };
+
+      this.fileService.convertDotxToPdf(this.selectedFile, variables).subscribe(
         (blob) => {
           const url = window.URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -27,6 +38,8 @@ export class AppComponent {
           console.error('Error converting file:', error);
         }
       );
+    } else {
+      console.error('No file selected');
     }
   }
 }
