@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import JSZip from 'jszip';
 import { PDFDocument, rgb } from 'pdf-lib';
+import { DOMParser, XMLSerializer } from 'xmldom'; // Adicione esta linha se xmldom estiver disponível
 
 @Injectable({
   providedIn: 'root',
@@ -23,11 +24,9 @@ export class FileService {
           console.log('File loaded, processing...');
           console.log('Variables:', variables);
 
-          // Usando JSZip para descompactar o arquivo .dotx
           const zip = new JSZip();
           const content = await zip.loadAsync(arrayBuffer);
 
-          // Acessa o documento XML principal dentro do .dotx
           const documentXml = await content
             .file('word/document.xml')
             ?.async('string');
@@ -38,25 +37,35 @@ export class FileService {
 
           console.log('Original document XML:', documentXml);
 
-          // Substitui as DOCVARIABLE no XML com os valores fornecidos
-          let updatedXml = documentXml;
-          for (const key in variables) {
-            const regex = new RegExp(
-              `<w:instrText[^>]*>\\s*DOCVARIABLE\\s+${key}\\s+\\\\\\*\\s+MERGEFORMAT</w:instrText>`,
-              'g'
-            );
-            updatedXml = updatedXml.replace(
-              regex,
-              `<w:t>${variables[key]}</w:t>`
-            );
-            console.log(`Replaced ${key} with ${variables[key]}`);
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(documentXml, 'application/xml');
+          const instrTexts = xmlDoc.getElementsByTagName('w:instrText');
+
+          // Iterar de trás para frente
+          for (let i = instrTexts.length - 1; i >= 0; i--) {
+            const instrText = instrTexts[i];
+            const textContent = instrText.textContent || '';
+
+            if (textContent.includes('DOCVARIABLE')) {
+              for (const key in variables) {
+                if (textContent.includes(key)) {
+                  const parent = instrText.parentNode;
+                  if (parent) {
+                    const newTextElement = xmlDoc.createElement('w:t');
+                    newTextElement.textContent = variables[key];
+                    parent.replaceChild(newTextElement, instrText);
+                    console.log(`Replaced ${key} with ${variables[key]}`);
+                  }
+                }
+              }
+            }
           }
+
+          const serializer = new XMLSerializer();
+          const updatedXml = serializer.serializeToString(xmlDoc);
 
           console.log('Updated document XML:', updatedXml);
 
-          // Extraindo texto simples do XML atualizado (simplificação)
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(updatedXml, 'text/xml');
           const paragraphs = xmlDoc.getElementsByTagName('w:p');
 
           let extractedText = '';
@@ -70,7 +79,6 @@ export class FileService {
 
           console.log('Extracted text:', extractedText);
 
-          // Criando um novo PDF usando pdf-lib
           const pdfDoc = await PDFDocument.create();
           const page = pdfDoc.addPage([600, 400]);
           const { width, height } = page.getSize();
