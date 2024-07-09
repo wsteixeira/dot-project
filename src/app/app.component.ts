@@ -9,6 +9,7 @@ import { FileService } from './file.service';
 export class AppComponent {
   name: string = '';
   age: string = '';
+  docNumber: string = '';
   selectedFile: File | null = null;
 
   constructor(private fileService: FileService) {}
@@ -22,6 +23,7 @@ export class AppComponent {
       const variables = {
         name: this.name,
         age: this.age,
+        docNumber: this.docNumber,
       };
 
       this.fileService.convertDotxToPdf(this.selectedFile, variables).subscribe(
@@ -47,7 +49,11 @@ export class AppComponent {
     this.fileService.downloadModel().subscribe(
       (dotxBlob: any) => {
         // Assumindo que o serviço convertDotxToPdf pode aceitar um Blob diretamente
-        const variables = { name: this.name, age: this.age };
+        const variables = {
+          name: this.name,
+          age: this.age,
+          docNumber: this.docNumber,
+        };
         this.fileService.convertDotxToPdf(dotxBlob, variables).subscribe(
           (pdfBlob) => {
             const url = window.URL.createObjectURL(pdfBlob);

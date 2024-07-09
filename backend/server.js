@@ -7,7 +7,7 @@ const path = require("path");
 const PORT = 3000;
 
 app.get("/api/download-model", (req, res) => {
-  const filePath = "c:\\Temp\\modelo.dotx";
+  const filePath = "c:\\Temp\\modelo_cnd.dotx";
   const fileName = path.basename(filePath);
 
   // Verifica se o arquivo existe
